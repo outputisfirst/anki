@@ -7,7 +7,7 @@ const MEANING1 = 3;
 const MEANING2 = 4;
 const REMARKS = 5;
 
-let fileContent = fs.readFileSync('./input.csv', 'utf8');
+let fileContent = fs.readFileSync('./anki.csv', 'utf8');
 let lines = fileContent.toString().split('\r\n');
 
 let records = [];
@@ -53,38 +53,38 @@ let newRecords = records.map((record) => {
   }
 
   if(input === 'y') {
-    console.log('yes');
-    
     // 記憶レベルがマックス以外の時
-    if(record[7] !== 5){
-      record[7] += 1; // レベルを1上げる
+    if(Number(record[7]) !== 5){
+      record[7] = Number(record[7]) + 1; // レベルを1上げる
     }
-    record[6] += memoryLevels[record[7]];
+    record[6] = Number(record[6]) + memoryLevels[record[7]];
   }
   else {
-    console.log('no');
     // レベルがミニマム以外の時
-    if(record[7] !== 1){
-      record[7] -= 1; // レベルを1下げる
+    if(Number(record[7]) !== 1){
+      record[7] = Number(record[7]) - 1; // レベルを1下げる
     }
-    record[6] += memoryLevels[record[7]];
+    record[6] = Number(record[6]) + memoryLevels[record[7]];
   }
 
   return record;
 });
 
-fs.writeFileSync('./out.csv', '', (err) => {
+// 新規ファイル作成
+fs.writeFileSync('./anki.csv', '', (err) => {
   if(err) {
     console.log(err);
   }
 });
 
+// 記憶レベルが高いほど後へソート
 newRecords.sort((a, b) => {
-  return(a[7] - b[7]);
+  return(Number(a[7]) - Number(b[7]));
 });
+
+// ごり押しでCSVへ追加
 for(let record of newRecords){
-  // ごり押しでCSV出力
-  fs.appendFileSync('./out.csv', `${record[0]}, ${record[1]}, ${record[2]}, ${record[3]}, ${record[4]}, ${record[5]}, ${record[6]}, ${record[7]} \n`, (err) => {
+  fs.appendFileSync('./anki.csv', `${record[0]},${record[1]},${record[2]},${record[3]},${record[4]},${record[5]},${record[6]},${record[7]}\r\n`, (err) => {
     if(err) {
       console.log(err);
     }
@@ -92,18 +92,22 @@ for(let record of newRecords){
 }
 
 
-// TODO: 次確認する日付と時間を保存するための列を作る
 // level.1 20m (1200000ミリ秒)
 // level.2 1h (3600000 ミリ秒)
 // level.3 1day (8640000 ミリ秒)
 // level.4 3days (25920000 ミリ秒)
 // level.5 20days (172800000 ミリ秒)
 //
-// 一回確認するたびにレベルは上がっていく
-// 単語を覚えていたかどうかは yes or no で答える
+// TODO:  特に時間の概念は必要ではないのではないか説
+//        もし必要あるなら，時間がマッチした単語だけを表示するほうが良いのではないか
 // 
-// 入力CSVを作成するプログラム
-// アプリケーションプログラム
+// TODO:  Notionで単語リストに変更がかかった場合，CSVのヘッダーが付加される
+//        更新された単語リストにこれまでの記憶レベルを対応させなければいけない
+// 
+// TODO:  記憶レベルの足し算が文字列連結になっている
+//        その結果，秒数に undefined が連結されてしまう
+//
+// TODO:  anki.csvの最後にゴミが入る
 /*
  * spell, class1,lskdjf;lkj class2, meaning1, meaning2, remarks
  */
